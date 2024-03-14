@@ -25,7 +25,7 @@ def verify_in_photo(
 
     return result
 
-def get_face_from_photo(
+def faces_in_photo(
         image: np.ndarray,
         detector_backend: str = detector_backend_model
     ) -> np.ndarray:
@@ -39,19 +39,5 @@ def get_face_from_photo(
     """
 
     face_objs = DeepFace.extract_faces(image, detector_backend=detector_backend, enforce_detection=False)
-    face_obj = face_objs[0]
 
-    area = face_obj['facial_area']
-    x, y, w, h = area['x'], area['y'], area['w'], area['h']
-
-    face_image = image[y:y+h, x:x+w]
-    return face_image
-
-
-if __name__ == '__main__':
-    image1 = cv2.imread(r'../data/0.jpg')
-    image2 = cv2.imread(r'../data/1.jpg')
-
-    result = verify_in_photo(image1, image2, 'yolov8', 'Facenet512')
-
-    print(result)
+    return face_objs

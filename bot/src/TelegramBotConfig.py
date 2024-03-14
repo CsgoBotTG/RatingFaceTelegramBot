@@ -1,7 +1,7 @@
 start_token = '6637485467:AAFmS9mSSgTQDf8ZrbQQPapJ4neoCAPzBoo'
 
-verify_model = 'Facenet512'
-detector_backend_model = 'yolov8'
+verify_model = 'VGG-Face'
+detector_backend_model = 'opencv'
 
 data_path = r'../data/'
 

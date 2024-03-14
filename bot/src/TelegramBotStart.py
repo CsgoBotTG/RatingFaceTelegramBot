@@ -57,12 +57,28 @@ def start_bot(
             image_check = cv2.imread(image_check_path)
             result = verify_in_photo(image, image_check, detector_backend_model, verify_model)
 
-            print(result['verified'])
             if result['verified']:
                 await bot.send_message(message.from_user.id, 'Found')
 
                 area = result['facial_areas']['img1']
                 x, y, w, h = area['x'], area['y'], area['w'], area['h']
+
+                for i in range(50):
+                    if w < image.shape[0] - x - 1:
+                        if x > 0:
+                            x -= 1
+                            w += 2
+                        else:
+                            w += 1
+
+                for i in range(50):
+                    if h < image.shape[1] - y - 1:
+                        if y > 0:
+                            y -= 1
+                            h += 2
+                        else:
+                            h += 1
+
                 face = image[y:y+h, x:x+w]
 
                 send_image(bot, message, face, "Face in your photo")
@@ -76,8 +92,31 @@ def start_bot(
             index = len(os.listdir(data_path)) // 2
             storage['founded_id'] = index
 
+            face_obj = faces_in_photo(image, detector_backend_model)[0]
+            face_area = face_obj['facial_area']
+            x, y, w, h = face_area['x'], face_area['y'], face_area['w'], face_area['h']
+            
+            for i in range(50):
+                if w < image.shape[0] - x - 1:
+                    if x > 0:
+                        x -= 1
+                        w += 2
+                    else:
+                        w += 1
+
+            for i in range(50):
+                if h < image.shape[1] - y - 1:
+                    if y > 0:
+                        y -= 1
+                        h += 2
+                    else:
+                        h += 1
+
+            face = image[y:y+h, x:x+w]
+            send_image(bot, message, face, 'Founded face')
+
             await bot.send_message(message.from_user.id, 'Saving...')
-            cv2.imwrite(f'{data_path}{index}.jpg', image)
+            cv2.imwrite(f'{data_path}{index}.jpg', face)
             with open(f'{data_path}{index}.txt', 'w') as file:
                 file.write('5.0')
             await bot.send_message(message.from_user.id, 'Saved')
@@ -104,7 +143,6 @@ def start_bot(
             ratings = list(map(float, rating_file.read().split()))
             rating_file.write(f' {got_grade}')
 
-        print(ratings)
         await callback_query.message.edit_text(f"Your grade: {got_grade}\nNow his rating: {(got_grade + sum(ratings)) / (1 + len(ratings))}")
 
 
