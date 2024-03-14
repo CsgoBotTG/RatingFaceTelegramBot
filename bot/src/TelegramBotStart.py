@@ -1,5 +1,6 @@
 import os
 import cv2
+import glob
 import asyncio
 
 from TelegramBotConfig import *
@@ -50,17 +51,17 @@ def start_bot(
         image = await get_image_from_message(bot, message)
         await bot.send_message(message.from_user.id, 'Got image')
 
-        for index in range(len(os.listdir(data_path)) // 2):
-            image_check_path = f'{data_path}{index}.jpg'
+        await bot.send_message(message.from_user.id, 'Finding in database...')
+        for index, image_check_path in enumerate(glob.glob(f'{data_path}*.jpg')):
             image_check = cv2.imread(image_check_path)
-
             result = verify_in_photo(image, image_check, detector_backend_model, verify_model)
 
+            print(image, image_check, result)
             if result['verified']:
+                await bot.send_message(message.from_user.id, 'Found')
 
                 area = result['facial_areas']['img1']
                 x, y, w, h = area['x'], area['y'], area['w'], area['h']
-
                 face = image[y:y+h, x:x+w]
 
                 send_image(bot, message, face, "Face in your photo")
@@ -70,25 +71,40 @@ def start_bot(
                 break
         else:
             await bot.send_message(message.from_user.id, "Didn't find in database")
-            
-            face = get_face_from_photo(image, detector_backend_model)
-            send_image(bot, message, face, 'Founded face')
 
             index = len(os.listdir(data_path)) // 2
             storage['founded_id'] = index
 
             await bot.send_message(message.from_user.id, 'Saving...')
-            cv2.imwrite(f'{data_path}{index}.jpg', face)
+            cv2.imwrite(f'{data_path}{index}.jpg', image)
             with open(f'{data_path}{index}.txt', 'w') as file:
                 file.write('5.0')
             await bot.send_message(message.from_user.id, 'Saved')
 
-        rating = None
         with open(f"{data_path}{storage['founded_id']}.txt") as rating_file:
-            rating = float(rating_file.read())
+            ratings = list(map(float, rating_file.read().split()))
 
-        await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {rating}', parse_mode=ParseMode.HTML)
+        await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML)
+        await bot.send_message(message.from_user.id, "Please rate this face from 0 to 10")
         await state.set_state(GetGrade.Grade)
+
+
+    @dp.message(GetGrade.Grade)
+    async def get_grade(message: Message):
+        if message.content_type != 'text' or not message.text.isdigit() or not 0 <= int(message.text) <= 10:
+            await bot.send_message(message.from_user.id, "It isn't grade from 0 to 10 man...")
+        else:
+            got_grade = float(message.text)
+            await bot.send_message(message.from_user.id, 'Got your grade')
+
+            with open(f"{data_path}{storage['founded_id']}.txt", 'r+') as rating_file:
+                ratings_txt = rating_file.read()
+                ratings = list(map(float, ratings_txt.split()))
+                ratings.append(got_grade)
+                avg_rating = sum(ratings) / len(ratings)
+
+                rating_file.write(f' {got_grade}')
+                await bot.send_message(message.from_user.id, f'Now <u>rating</u> of this face: {avg_rating}', parse_mode=ParseMode.HTML)
 
 
     # starting bot

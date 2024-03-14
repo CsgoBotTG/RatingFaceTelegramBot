@@ -1,6 +1,6 @@
 start_token = '6637485467:AAFmS9mSSgTQDf8ZrbQQPapJ4neoCAPzBoo'
 
-verify_model = 'SFace'
+verify_model = 'Facenet512'
 detector_backend_model = 'yolov8'
 
 data_path = r'../data/'
