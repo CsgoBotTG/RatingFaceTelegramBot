@@ -3,7 +3,7 @@ import requests
 import numpy as np
 
 from aiogram import Bot
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.state import State, StatesGroup
 
 async def get_image_from_message(
@@ -56,5 +56,12 @@ def send_image(
     result = requests.post(url, data=data, files={'photo': image})
     return result.json()['ok']
 
-class GetGrade(StatesGroup):
-    Grade = State()
+rate_txt = [
+    ['0'],
+    ['1', '2', '3'],
+    ['4', '5', '6'],
+    ['7', '8', '9'],
+    ['10']
+]
+buttons_rate_menu = [[InlineKeyboardButton(text=text, callback_data=text) for text in list_text] for list_text in rate_txt]
+rate_menu = InlineKeyboardMarkup(inline_keyboard=buttons_rate_menu)

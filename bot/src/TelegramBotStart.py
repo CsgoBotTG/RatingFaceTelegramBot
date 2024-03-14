@@ -10,7 +10,7 @@ from TelegramBotHelper import *
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 
 def start_bot(
@@ -29,7 +29,8 @@ def start_bot(
 
     storage = {
         'first_message': True,
-        'founded_id': None
+        'founded_id': None,
+        'rate_id': None
     }
 
     @dp.message(Command(commands=['start', 'help']))
@@ -56,7 +57,7 @@ def start_bot(
             image_check = cv2.imread(image_check_path)
             result = verify_in_photo(image, image_check, detector_backend_model, verify_model)
 
-            print(image, image_check, result)
+            print(result['verified'])
             if result['verified']:
                 await bot.send_message(message.from_user.id, 'Found')
 
@@ -84,27 +85,27 @@ def start_bot(
         with open(f"{data_path}{storage['founded_id']}.txt") as rating_file:
             ratings = list(map(float, rating_file.read().split()))
 
-        await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML)
-        await bot.send_message(message.from_user.id, "Please rate this face from 0 to 10")
-        await state.set_state(GetGrade.Grade)
+        rate_button = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Rate this face", callback_data=f"RateFace{storage['founded_id']}")]])
+        storage['rate_id'] = storage['founded_id']
+        await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML, reply_markup=rate_button)
 
 
-    @dp.message(GetGrade.Grade)
-    async def get_grade(message: Message):
-        if message.content_type != 'text' or not message.text.isdigit() or not 0 <= int(message.text) <= 10:
-            await bot.send_message(message.from_user.id, "It isn't grade from 0 to 10 man...")
-        else:
-            got_grade = float(message.text)
-            await bot.send_message(message.from_user.id, 'Got your grade')
+    @dp.callback_query(F.data.startswith("RateFace"))
+    async def get_grade(callback_query: CallbackQuery):
+        await callback_query.message.edit_text(f"Rate this face!", reply_markup=rate_menu)
 
-            with open(f"{data_path}{storage['founded_id']}.txt", 'r+') as rating_file:
-                ratings_txt = rating_file.read()
-                ratings = list(map(float, ratings_txt.split()))
-                ratings.append(got_grade)
-                avg_rating = sum(ratings) / len(ratings)
 
-                rating_file.write(f' {got_grade}')
-                await bot.send_message(message.from_user.id, f'Now <u>rating</u> of this face: {avg_rating}', parse_mode=ParseMode.HTML)
+    @dp.callback_query(F.data.in_([str(i) for i in range(11)]))
+    async def set_grade(callback_query: CallbackQuery):
+        got_grade = float(callback_query.data)
+
+        ratings = None
+        with open(f"{data_path}{storage['founded_id']}.txt", 'r+') as rating_file:
+            ratings = list(map(float, rating_file.read().split()))
+            rating_file.write(f' {got_grade}')
+
+        print(ratings)
+        await callback_query.message.edit_text(f"Your grade: {got_grade}\nNow his rating: {(got_grade + sum(ratings)) / (1 + len(ratings))}")
 
 
     # starting bot
