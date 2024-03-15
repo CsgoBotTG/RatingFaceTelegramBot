@@ -3,7 +3,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from sys import argv
 from TelegramBotConfig import start_token
-
 from TelegramBotStart import start_bot
 
 
