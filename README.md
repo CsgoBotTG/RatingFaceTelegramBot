@@ -19,4 +19,8 @@ $ python main.py -token YourToken
 
 # Examples
 ### Start
-![Example](images/start.jpg)
+![Example](images/start.png)
+### New face
+![Example](images/new_face.png)
+### Found face
+![Example](images/found_face.png)
