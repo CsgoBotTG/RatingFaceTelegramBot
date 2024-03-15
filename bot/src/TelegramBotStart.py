@@ -49,7 +49,8 @@ def start_bot(
     async def get_image(message: Message):
         image = await get_image_from_message(bot, message)
         await bot.send_message(message.from_user.id, 'Got image')
-        await bot.send_message(message.from_user.id, 'Finding in database...')
+        find_message = await bot.send_message(message.from_user.id, 'Finding in database...')
+        asyncio.sleep(3)
 
         index = None
         for index_image_check, image_check_path in enumerate(glob.glob(f'{main_path}/{data_path}*.jpg')):
@@ -57,7 +58,7 @@ def start_bot(
             result = verify_in_photo(image, image_check, detector_backend_model, verify_model)
 
             if result['verified']:
-                await bot.send_message(message.from_user.id, 'Found')
+                await bot.edit_message_text('Found in database', message.from_user.id, find_message.message_id)
 
                 area = result['facial_areas']['img1']
                 x, y, w, h = area['x'], area['y'], area['w'], area['h']
@@ -87,7 +88,7 @@ def start_bot(
 
                 break
         else:
-            await bot.send_message(message.from_user.id, "Didn't find in database")
+            await bot.edit_message_text("Didn't find in database", message.from_user.id, find_message.message_id)
 
             index = len(os.listdir(f'{main_path}/{data_path}')) // 2
 
@@ -114,18 +115,18 @@ def start_bot(
             face = image[y:y+h, x:x+w]
             send_image(bot, message, face, 'Founded face')
 
-            await bot.send_message(message.from_user.id, 'Saving...')
+            saving_message = await bot.send_message(message.from_user.id, 'Saving...')
             cv2.imwrite(f'{main_path}/{data_path}{index}.jpg', face)
             with open(f'{main_path}/{data_path}{index}.txt', 'w') as file:
                 file.write('5.0')
-            await bot.send_message(message.from_user.id, 'Saved')
+            await bot.edit_message_text('Saved', message.from_user.id, saving_message.message_id)
 
         with open(f"{main_path}/{data_path}{index}.txt") as rating_file:
             ratings = list(map(float, rating_file.read().split()))
 
         rate_button = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Rate this face", callback_data=f"RateFace{index}")]])
-        sent_message = await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML, reply_markup=rate_button)
-        storage[sent_message.message_id] = index
+        rate_message = await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML, reply_markup=rate_button)
+        storage[rate_message.message_id] = index
 
     @dp.callback_query(F.data.startswith("RateFace"))
     async def get_grade(callback_query: CallbackQuery):
@@ -135,8 +136,6 @@ def start_bot(
     async def set_grade(callback_query: CallbackQuery):
         got_grade = float(callback_query.data)
 
-        print(storage)
-        ratings = None
         with open(f"{main_path}/{data_path}{storage[callback_query.message.message_id]}.txt", 'r+') as rating_file:
             ratings = list(map(float, rating_file.read().split()))
             rating_file.write(f' {got_grade}')
