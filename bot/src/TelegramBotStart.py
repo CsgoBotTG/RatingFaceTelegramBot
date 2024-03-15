@@ -63,37 +63,31 @@ def start_bot(
                 area = result['facial_areas']['img1']
                 x, y, w, h = area['x'], area['y'], area['w'], area['h']
                 x, y, w, h = border_resize(x, y, w, h, 50, 50, image.shape)
-
                 face = image[y:y+h, x:x+w]
 
                 send_image(bot, message, face, "Face in your photo")
                 send_image(bot, message, image_check, "Face in database")
 
                 index = index_image_check
-
                 break
         else:
             await bot.edit_message_text("Didn't find in database", message.from_user.id, find_message.message_id)
 
             index = len(os.listdir(f'{main_path}/{data_path}')) // 2
-
             face_obj = faces_in_photo(image, detector_backend_model)[0]
             face_area = face_obj['facial_area']
             x, y, w, h = face_area['x'], face_area['y'], face_area['w'], face_area['h']
             x, y, w, h = border_resize(x, y, w, h, 50, 50, image.shape)
-
             face = image[y:y+h, x:x+w]
-            send_image(bot, message, face, 'Founded face')
 
-            saving_message = await bot.send_message(message.from_user.id, 'Saving...')
+            send_image(bot, message, face, 'Founded face')
             cv2.imwrite(f'{main_path}/{data_path}{index}.jpg', face)
             with open(f'{main_path}/{data_path}{index}.txt', 'w') as file:
                 file.write('5.0')
-            await bot.edit_message_text('Saved', message.from_user.id, saving_message.message_id)
+            await bot.send_message(message.from_user.id, 'Saved in database')
 
         with open(f"{main_path}/{data_path}{index}.txt") as rating_file:
             ratings = list(map(float, rating_file.read().split()))
-
         rate_button = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Rate this face", callback_data=f"RateFace{index}")]])
         rate_message = await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML, reply_markup=rate_button)
         storage[rate_message.message_id] = index
