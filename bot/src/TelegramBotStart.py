@@ -62,22 +62,7 @@ def start_bot(
 
                 area = result['facial_areas']['img1']
                 x, y, w, h = area['x'], area['y'], area['w'], area['h']
-
-                for i in range(50):
-                    if w < image.shape[0] - x - 1:
-                        if x > 0:
-                            x -= 1
-                            w += 2
-                        else:
-                            w += 1
-
-                for i in range(50):
-                    if h < image.shape[1] - y - 1:
-                        if y > 0:
-                            y -= 1
-                            h += 2
-                        else:
-                            h += 1
+                x, y, w, h = border_resize(x, y, w, h, 50, 50, image.shape)
 
                 face = image[y:y+h, x:x+w]
 
@@ -95,22 +80,7 @@ def start_bot(
             face_obj = faces_in_photo(image, detector_backend_model)[0]
             face_area = face_obj['facial_area']
             x, y, w, h = face_area['x'], face_area['y'], face_area['w'], face_area['h']
-            
-            for i in range(50):
-                if w < image.shape[0] - x - 1:
-                    if x > 0:
-                        x -= 1
-                        w += 2
-                    else:
-                        w += 1
-
-            for i in range(50):
-                if h < image.shape[1] - y - 1:
-                    if y > 0:
-                        y -= 1
-                        h += 2
-                    else:
-                        h += 1
+            x, y, w, h = border_resize(x, y, w, h, 50, 50, image.shape)
 
             face = image[y:y+h, x:x+w]
             send_image(bot, message, face, 'Founded face')

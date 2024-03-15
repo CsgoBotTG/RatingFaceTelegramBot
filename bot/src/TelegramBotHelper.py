@@ -57,6 +57,42 @@ def send_image(
     return result.json()['ok']
 
 
+def border_resize(
+        x: int, y: int, w: int, h: int,
+        pxx: int,
+        pxy: int,
+        image_shape: tuple
+    ) -> tuple:
+    """
+    Resizing border of image without get out of his shape
+
+    :param x, y, w, h: ints. Border
+    :param pxx: int. Count of pixels, how many pixels add to weight
+    :param pxx: int. Count of pixels, how many pixels add to height
+    :param image_shape: tuple. Size of this image
+
+    :return: tuple. New border
+    """
+
+    for i in range(pxx):
+        if w < image_shape[0] - x - 1:
+            if x > 0:
+                x -= 1
+                w += 2
+            else:
+                w += 1
+
+    for i in range(pxy):
+        if h < image_shape[1] - y - 1:
+            if y > 0:
+                y -= 1
+                h += 2
+            else:
+                h += 1
+
+    return x, y, w, h
+
+
 rate_txt = [
     ['0'],
     ['1', '2', '3'],
