@@ -28,8 +28,6 @@ def start_bot(
 
     storage = {
         'first_message': True,
-        'founded_id': None,
-        'rate_id': None
     }
 
     @dp.message(Command(commands=['start', 'help']))
@@ -51,9 +49,10 @@ def start_bot(
     async def get_image(message: Message):
         image = await get_image_from_message(bot, message)
         await bot.send_message(message.from_user.id, 'Got image')
-
         await bot.send_message(message.from_user.id, 'Finding in database...')
-        for index, image_check_path in enumerate(glob.glob(f'{data_path}*.jpg')):
+
+        index = None
+        for index_image_check, image_check_path in enumerate(glob.glob(f'{main_path}/{data_path}*.jpg')):
             image_check = cv2.imread(image_check_path)
             result = verify_in_photo(image, image_check, detector_backend_model, verify_model)
 
@@ -84,13 +83,13 @@ def start_bot(
                 send_image(bot, message, face, "Face in your photo")
                 send_image(bot, message, image_check, "Face in database")
 
-                storage['founded_id'] = index
+                index = index_image_check
+
                 break
         else:
             await bot.send_message(message.from_user.id, "Didn't find in database")
 
-            index = len(os.listdir(data_path)) // 2
-            storage['founded_id'] = index
+            index = len(os.listdir(f'{main_path}/{data_path}')) // 2
 
             face_obj = faces_in_photo(image, detector_backend_model)[0]
             face_area = face_obj['facial_area']
@@ -116,17 +115,17 @@ def start_bot(
             send_image(bot, message, face, 'Founded face')
 
             await bot.send_message(message.from_user.id, 'Saving...')
-            cv2.imwrite(f'{data_path}{index}.jpg', face)
-            with open(f'{data_path}{index}.txt', 'w') as file:
+            cv2.imwrite(f'{main_path}/{data_path}{index}.jpg', face)
+            with open(f'{main_path}/{data_path}{index}.txt', 'w') as file:
                 file.write('5.0')
             await bot.send_message(message.from_user.id, 'Saved')
 
-        with open(f"{data_path}{storage['founded_id']}.txt") as rating_file:
+        with open(f"{main_path}/{data_path}{index}.txt") as rating_file:
             ratings = list(map(float, rating_file.read().split()))
 
-        rate_button = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Rate this face", callback_data=f"RateFace{storage['founded_id']}")]])
-        storage['rate_id'] = storage['founded_id']
-        await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML, reply_markup=rate_button)
+        rate_button = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Rate this face", callback_data=f"RateFace{index}")]])
+        sent_message = await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML, reply_markup=rate_button)
+        storage[sent_message.message_id] = index
 
     @dp.callback_query(F.data.startswith("RateFace"))
     async def get_grade(callback_query: CallbackQuery):
@@ -136,8 +135,9 @@ def start_bot(
     async def set_grade(callback_query: CallbackQuery):
         got_grade = float(callback_query.data)
 
+        print(storage)
         ratings = None
-        with open(f"{data_path}{storage['founded_id']}.txt", 'r+') as rating_file:
+        with open(f"{main_path}/{data_path}{storage[callback_query.message.message_id]}.txt", 'r+') as rating_file:
             ratings = list(map(float, rating_file.read().split()))
             rating_file.write(f' {got_grade}')
 
