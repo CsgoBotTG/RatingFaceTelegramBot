@@ -1,5 +1,4 @@
 import os
-import cv2
 import glob
 import asyncio
 
@@ -11,7 +10,7 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.fsm.context import FSMContext
+
 
 def start_bot(
         token: str,
@@ -39,16 +38,17 @@ def start_bot(
             print(f'First message by {message.from_user.first_name} | {message.from_user.id}')
 
             await bot.send_animation(message.from_user.id, "https://media1.tenor.com/m/5hKPyupKGWMAAAAC/robot-hello.gif")
-            await bot.send_message(message.from_user.id, f"Hello, {message.from_user.first_name}! I'm BOT that working on Deepface and Tensorflow!\n<a href='{github_link}'><b><u>Github</u></b></a>", parse_mode=ParseMode.HTML)
+            await bot.send_message(message.from_user.id, f"Hello, {message.from_user.first_name}! " \
+                                   + "I'm BOT that working on Deepface and Tensorflow!" \
+                                   + "\n<a href='{github_link}'><b><u>Github</u></b></a>", parse_mode=ParseMode.HTML)
 
             storage['first_message'] = False
 
         await bot.send_message(message.from_user.id, start_message)
 
-
     # get image
     @dp.message(F.photo)
-    async def get_image(message: Message, state: FSMContext):
+    async def get_image(message: Message):
         image = await get_image_from_message(bot, message)
         await bot.send_message(message.from_user.id, 'Got image')
 
@@ -128,11 +128,9 @@ def start_bot(
         storage['rate_id'] = storage['founded_id']
         await bot.send_message(message.from_user.id, f'<u>Rating</u> this face: {sum(ratings) / len(ratings)}', parse_mode=ParseMode.HTML, reply_markup=rate_button)
 
-
     @dp.callback_query(F.data.startswith("RateFace"))
     async def get_grade(callback_query: CallbackQuery):
         await callback_query.message.edit_text(f"Rate this face!", reply_markup=rate_menu)
-
 
     @dp.callback_query(F.data.in_([str(i) for i in range(11)]))
     async def set_grade(callback_query: CallbackQuery):
@@ -145,14 +143,14 @@ def start_bot(
 
         await callback_query.message.edit_text(f"Your grade: {got_grade}\nNow his rating: {(got_grade + sum(ratings)) / (1 + len(ratings))}")
 
-
     # starting bot
     async def main():
         await bot.delete_webhook(drop_pending_updates=True)
 
         if to_log:
             info_bot = await bot.get_me()
-            print(f"Starting bot {info_bot.first_name} with token {token} (aiogram). https://t.me/{info_bot.username} | @{info_bot.username}")
+            print(f"Starting bot {info_bot.first_name} with token {token} (aiogram)")
+            print(f"https://t.me/{info_bot.username} | @{info_bot.username}")
 
         await dp.start_polling(bot)
 

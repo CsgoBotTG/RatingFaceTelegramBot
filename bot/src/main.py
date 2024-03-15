@@ -1,17 +1,17 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from sys import argv
 from TelegramBotConfig import start_token
 from TelegramBotStart import start_bot
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 
 def main():
-    token = None
     try:
         index = argv.index('-token') + 1
         token = argv[index]
-    except:
+    except Exception as err:
         print("Didn't find token")
         token = start_token
 
@@ -19,4 +19,5 @@ def main():
 
 
 if __name__ == '__main__':
+    os.system("cls")
     main()

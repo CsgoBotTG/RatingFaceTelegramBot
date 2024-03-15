@@ -1,8 +1,11 @@
+from typing import List, Dict, Any
+
 import cv2
 import numpy as np
 
 from TelegramBotConfig import detector_backend_model, verify_model
 from deepface import DeepFace
+
 
 def verify_in_photo(
         image1: np.ndarray, 
@@ -25,10 +28,11 @@ def verify_in_photo(
 
     return result
 
+
 def faces_in_photo(
         image: np.ndarray,
         detector_backend: str = detector_backend_model
-    ) -> np.ndarray:
+    ) -> List[Dict[str, Any]]:
     """
     Get image of face
 
