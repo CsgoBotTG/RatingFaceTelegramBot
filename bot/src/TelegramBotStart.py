@@ -40,7 +40,7 @@ def start_bot(
             await bot.send_animation(message.from_user.id, "https://media1.tenor.com/m/5hKPyupKGWMAAAAC/robot-hello.gif")
             await bot.send_message(message.from_user.id, f"Hello, {message.from_user.first_name}! " \
                                    + "I'm BOT that working on Deepface and Tensorflow!" \
-                                   + "\n<a href='{github_link}'><b><u>Github</u></b></a>", parse_mode=ParseMode.HTML)
+                                   + f"\n<a href='{github_link}'><b><u>Github</u></b></a>", parse_mode=ParseMode.HTML)
 
             storage['first_message'] = False
 
