@@ -3,8 +3,8 @@ import glob
 import asyncio
 
 from TelegramBotConfig import *
-from DeepFaceFunctions import *
 from TelegramBotHelper import *
+from DeepFaceFunctions import *
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums import ParseMode
@@ -36,9 +36,9 @@ def start_bot(
             print(f'First message by {message.from_user.first_name} | {message.from_user.id}')
 
             await bot.send_animation(message.from_user.id, "https://media1.tenor.com/m/5hKPyupKGWMAAAAC/robot-hello.gif")
-            await bot.send_message(message.from_user.id, f"Hello, {message.from_user.first_name}! " \
-                                   + "I'm BOT that working on Deepface and Tensorflow!" \
-                                   + f"\n<a href='{github_link}'><b><u>Github</u></b></a>", parse_mode=ParseMode.HTML)
+            await bot.send_message(message.from_user.id, f"Hello, {message.from_user.first_name}! " +
+                                    "I'm BOT that working on Deepface and Tensorflow!" +
+                                    f"\n<a href='{github_link}'><b><u>Github</u></b></a>", parse_mode=ParseMode.HTML)
 
             storage['first_message'] = False
 
@@ -65,8 +65,8 @@ def start_bot(
                 x, y, w, h = border_resize(x, y, w, h, 50, 50, image.shape)
                 face = image[y:y+h, x:x+w]
 
-                send_image(bot, message, face, "Face in your photo")
-                send_image(bot, message, image_check, "Face in database")
+                await send_image(bot, message, face, "Face in your photo")
+                await send_image(bot, message, image_check, "Face in database")
 
                 index = index_image_check
                 break
@@ -80,7 +80,8 @@ def start_bot(
             x, y, w, h = border_resize(x, y, w, h, 50, 50, image.shape)
             face = image[y:y+h, x:x+w]
 
-            send_image(bot, message, face, 'Founded face')
+            await send_image(bot, message, face, 'Founded face')
+
             cv2.imwrite(f'{main_path}/{data_path}{index}.jpg', face)
             with open(f'{main_path}/{data_path}{index}.txt', 'w') as file:
                 file.write('5.0')
