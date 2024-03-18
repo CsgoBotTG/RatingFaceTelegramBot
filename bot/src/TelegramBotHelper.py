@@ -1,5 +1,4 @@
 import cv2
-import requests
 import numpy as np
 
 from aiogram import Bot
@@ -97,5 +96,5 @@ rate_txt = [
     ['10']
 ]
 buttons_rate_menu = [[InlineKeyboardButton(text=text, callback_data=text) for text in list_text]
-                     for list_text in rate_txt]
+                    for list_text in rate_txt]
 rate_menu = InlineKeyboardMarkup(inline_keyboard=buttons_rate_menu)
