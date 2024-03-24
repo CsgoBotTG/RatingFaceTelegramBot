@@ -8,6 +8,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def main():
+    os.system('cls')
+
     try:
         index = argv.index('-token') + 1
         token = argv[index]
@@ -16,8 +18,3 @@ def main():
         token = start_token
 
     start_bot(token=token, to_log=True)
-
-
-if __name__ == '__main__':
-    os.system("cls")
-    main()
