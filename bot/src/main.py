@@ -18,3 +18,6 @@ def main():
         token = start_token
 
     start_bot(token=token, to_log=True)
+
+if __name__ == '__main__':
+    main()

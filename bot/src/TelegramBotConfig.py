@@ -1,6 +1,6 @@
 import os
 
-start_token = '6637485467:AAFmS9mSSgTQDf8ZrbQQPapJ4neoCAPzBoo'
+start_token = r'6637485467:AAFmS9mSSgTQDf8ZrbQQPapJ4neoCAPzBoo'
 
 verify_model = 'VGG-Face'
 detector_backend_model = 'opencv'
