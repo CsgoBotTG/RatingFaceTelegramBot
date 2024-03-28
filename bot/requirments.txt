@@ -3,7 +3,7 @@ gdown==5.1.0
 tqdm==4.30.0
 Pillow==10.2.0
 opencv-python==4.9.0.80
-tensorlflow==2.15.0
+tensorflow==2.15.0
 keras==2.15.0
 Flask==3.0.2
 mtcnn==0.1.0
